@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="css/product_style.css">
+    <script type="module" src="https://www.gstatic.com/firebasejs/9.4.0/firebase-app.js"></script>
+    <script type="module" src="https://www.gstatic.com/firebasejs/9.4.0/firebase-database.js"></script>
+    <script type="module" src="https://www.gstatic.com/firebasejs/9.4.0/firebase-storage.js"></script>
+    <script type="module" src="https://use.fontawesome.com/be1ba39dfe.js"></script>
+    <title>Books Available</title>
+</head>
+
+<body>
+    <nav class="navbar">
+        <div class="nav-right">
+            <ul>
+            <li><a href="index.html">Home</a></li>
+            <li><a href="products.html">Products</a></li>
+            <li><a href="About.html">About</a></li>
+            <li><a href="login.html">Login</a></li>
+            <li><a href="Register.html">Create Account</a></li>
+            </ul>
+        </div>
+        <div class="logo">
+            <img src="images/logo.png" alt="Logo">
+          </div>
+    </nav>
+
+    <div class="section-body">
+        <div class="gallery-main">
+            <div id="gallery" class="gallery"></div>
+        </div>
+        
+        <div class="cart" id="cart">
+            <h2>Shopping Cart</h2>
+            <div id="cart-items"></div>
+            <div class="total" id="total-price"></div>
+            <button id="buy-button">Buy Now</button>
+            <div id="user-details-form">
+                <input type="text" id="name" placeholder="Your Name">
+                <input type="email" id="email" placeholder="Your Email">
+                <input type="number" id="phone" placeholder="Your Phone">
+                <textarea id="address" placeholder="Your Address"></textarea>
+                <input type="file" id="payment-screenshot-input" accept="image/*" capture="camera">
+                <button id="complete-order-button">Complete Order</button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.4.0/firebase-app.js';
+        import { getDatabase, ref, get, push } from 'https://www.gstatic.com/firebasejs/9.4.0/firebase-database.js';
+        import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from 'https://www.gstatic.com/firebasejs/9.4.0/firebase-storage.js';
+
+        // Your Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyDZEdsBv_8IBGSDilh6WE-BYYhNXC6rIkM",
+            authDomain: "booktrade-5653c.firebaseapp.com",
+            projectId: "booktrade-5653c",
+            storageBucket: "booktrade-5653c.appspot.com",
+            messagingSenderId: "981330904864",
+            appId: "1:981330904864:web:37a1f9569d3ae260cbb945",
+            measurementId: "G-L2TG74QXND"
+        };
+        const firebaseApp = initializeApp(firebaseConfig);
+
+        const database = getDatabase();
+        const storage = getStorage();
+
+        function generateOrderId() {
+            // Generate a random unique ID for the order
+            return '_' + Math.random().toString(36).substr(2, 9);
+        }
+
+        function displayAllBooks() {
+            const booksRef = ref(database, 'books');
+
+            get(booksRef).then((snapshot) => {
+                const books = snapshot.val();
+                const gallery = document.getElementById('gallery');
+                gallery.innerHTML = "";
+
+                for (const key in books) {
+                    const book = books[key];
+
+                    const imageHolder = document.createElement('div');
+                    imageHolder.className = 'image-holder';
+
+                    const anchor = document.createElement('a');
+                    anchor.href = '#';
+
+                    const image = document.createElement('img');
+                    image.src = book.image;
+                    image.alt = `img-${key}`;
+
+                    const description = document.createElement('div');
+                    description.className = 'desc';
+                    description.innerHTML = `<strong>Title:</strong> ${book.title} <br>
+                                            <strong>Price:</strong> ₹${book.price} <br>
+                                            <strong>Category:</strong> ${book.category} <br>
+                                            <i class="fa fa-shopping-cart" aria-hidden="true"></i>
+                                            <button class="btn-add-to-cart" data-key="${key}" data-title="${book.title}" data-price="${book.price}">Add to Cart</button>`;
+
+                    anchor.appendChild(image);
+                    imageHolder.appendChild(anchor);
+                    imageHolder.appendChild(description);
+                    gallery.appendChild(imageHolder);
+                }
+
+                const addToCartButtons = document.querySelectorAll('.btn-add-to-cart');
+                addToCartButtons.forEach(button => {
+                    button.addEventListener('click', function () {
+                        const key = this.getAttribute('data-key');
+                        const title = this.getAttribute('data-title');
+                        const price = parseFloat(this.getAttribute('data-price'));
+                        addToCart(key, title, price);
+                    });
+                });
+            });
+        }
+
+        window.onload = () => {
+            displayAllBooks();
+        };
+
+        function addToCart(key, title, price) {
+            const cartItems = document.getElementById('cart-items');
+            const totalPriceElement = document.getElementById('total-price');
+
+            const cartItem = document.createElement('div');
+            cartItem.className = 'cart-item';
+
+            const itemInfo = document.createElement('div');
+            itemInfo.innerHTML = `<strong>${title}</strong> - ₹${price}`;
+
+            const removeButton = document.createElement('button');
+            removeButton.textContent = 'Remove';
+            removeButton.className = 'btn-remove-from-cart';
+
+            // Add a data-key attribute to the remove button to identify the corresponding cart item
+            removeButton.setAttribute('data-key', key);
+
+            cartItem.appendChild(itemInfo);
+            cartItem.appendChild(removeButton);
+
+            cartItems.appendChild(cartItem);
+
+            updateTotalPrice();
+
+            const cart = document.getElementById('cart');
+            cart.style.display = 'block';
+        }
+
+        // Use event delegation to handle remove button clicks
+        document.getElementById('cart-items').addEventListener('click', function (event) {
+            const removeButton = event.target.closest('.btn-remove-from-cart');
+            if (removeButton) {
+                const key = removeButton.getAttribute('data-key');
+                const cartItem = removeButton.closest('.cart-item');
+                cartItem.remove();
+                updateTotalPrice();
+            }
+        });
+
+        function updateTotalPrice() {
+            const totalPriceElement = document.getElementById('total-price');
+            const cartItemsContainer = document.getElementById('cart-items');
+            const cartItems = document.querySelectorAll('.cart-item');
+            let totalPrice = 0;
+
+            // Remove existing cart items to update the list
+            cartItemsContainer.innerHTML = '';
+
+            cartItems.forEach((item) => {
+                const price = parseFloat(item.textContent.split('₹')[1]);
+                totalPrice += price;
+
+                // Append the current cart item to the updated list
+                cartItemsContainer.appendChild(item.cloneNode(true));
+            });
+
+            if (cartItems.length > 0) {
+                // Add delivery charge only if there are items in the cart
+                const deliveryCharge = 100;
+                totalPrice += deliveryCharge;
+
+                // Display total price and delivery charges in the cart menu
+                totalPriceElement.innerHTML = `<strong>Total:</strong> ₹${totalPrice.toFixed(2)}`;
+
+                // Display delivery charges separately in the cart menu
+                const deliveryChargeElement = document.createElement('div');
+                deliveryChargeElement.id = 'delivery-charge';
+                deliveryChargeElement.innerHTML = `<strong>Delivery Charges:</strong> ₹${deliveryCharge.toFixed(2)}`;
+
+                // Append delivery charge element to the cart menu
+                cartItemsContainer.appendChild(deliveryChargeElement);
+            } else {
+                // No items in the cart, hide delivery charges
+                totalPriceElement.innerHTML = `<strong>Total:</strong> ₹${totalPrice.toFixed(2)}`;
+            }
+        }
+
+        // Buy button functionality
+        const buyButton = document.getElementById('buy-button');
+        buyButton.addEventListener('click', handleBuy);
+
+        function handleBuy() {
+            const userDetailsForm = document.getElementById('user-details-form');
+            userDetailsForm.style.display = 'block';
+        }
+
+        const completeOrderButton = document.getElementById('complete-order-button');
+    completeOrderButton.addEventListener('click', handleCompleteOrder);
+
+    function handleCompleteOrder() {
+        const name = document.getElementById('name').value;
+        const email = document.getElementById('email').value;
+        const phone = document.getElementById('phone').value;
+        const address = document.getElementById('address').value;
+        const paymentScreenshotInput = document.getElementById('payment-screenshot-input');
+        const paymentScreenshot = paymentScreenshotInput.files[0]; // Assume a single file is selected
+
+        // Generate a unique order ID
+        const orderId = generateOrderId();
+
+        // Upload payment screenshot to Firebase Storage
+        const storageRefObject = storageRef(storage, 'payments/' + paymentScreenshot.name);
+        const paymentTask = uploadBytes(storageRefObject, paymentScreenshot);
+
+        paymentTask
+            .then((snapshot) => getDownloadURL(snapshot.ref))
+            .then((downloadURL) => {
+                // Create an order object with user details, payment screenshot URL, and order ID
+                const order = {
+                    orderId,
+                    name,
+                    email,
+                    phone,
+                    address,
+                    paymentScreenshotURL: downloadURL,
+                    cartItems: getCartItems() // You need to implement getCartItems() to get items from the cart
+                };
+
+                // Store the order in the Firebase Realtime Database
+                const ordersRef = ref(database, 'orders');
+                return push(ordersRef, order);
+            })
+            .then(() => {
+                // Clear the form and display shopping cart text
+                clearUserDetailsForm();
+                displayShoppingCartText();
+                clearCart();
+                // Display alert for successful order placement
+                alert(`Order placed successfully! Your Order ID is: ${orderId}`);
+            })
+            .catch((error) => {
+                console.error('Error completing order:', error);
+            });
+    }
+
+    function displayShoppingCartText() {
+        // Display shopping cart text
+        const cart = document.getElementById('cart');
+        cart.style.display = 'block';
+
+        // Hide other elements
+        const userDetailsForm = document.getElementById('user-details-form');
+        userDetailsForm.style.display = 'none';
+    }
+
+
+        function getCartItems() {
+            const cartItems = document.querySelectorAll('.cart-item');
+            const items = [];
+
+            cartItems.forEach((item) => {
+                const title = item.querySelector('strong').textContent;
+                const price = parseFloat(item.textContent.split('₹')[1]);
+                items.push({ title, price });
+            });
+            return items;
+        }
+
+        function clearUserDetailsForm() {
+            const userDetailsForm = document.getElementById('user-details-form');
+            userDetailsForm.style.display = 'none';
+
+            // Clear form inputs
+            document.getElementById('name').value = '';
+            document.getElementById('email').value = '';
+            document.getElementById('phone').value = '';
+            document.getElementById('address').value = '';
+            document.getElementById('payment-screenshot-input').value = '';
+        }
+
+        function clearCart() {
+    const cartItemsContainer = document.getElementById('cart-items');
+    const deliveryChargeElement = document.getElementById('delivery-charge');
+    
+    // Remove existing cart items
+    cartItemsContainer.innerHTML = '';
+
+    // Remove delivery charge element if present
+    if (deliveryChargeElement) {
+        deliveryChargeElement.remove();
+    }
+
+    // Reset total price to 0
+    const totalPriceElement = document.getElementById('total-price');
+    totalPriceElement.innerHTML = `<strong>Total:</strong> ₹0.00`;
+}
+
+    </script>
+</body>
+
+</html>

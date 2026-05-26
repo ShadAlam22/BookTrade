@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        
+
+        form {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            max-width: 400px;
+            width: 100%;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+
+        label {
+            display: block;
+            margin: 10px 0;
+            color: #555;
+        }
+
+        input,
+        select {
+            width: 100%;
+            padding: 8px;
+            margin: 8px 0;
+            box-sizing: border-box;
+        }
+
+        button {
+            background-color: #4caf50;
+            color: #fff;
+            padding: 10px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            width: 100%;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+    </style>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-storage.js"></script>
+    <title>Book Upload</title>
+</head>
+
+<body>
+    <form id="bookForm">
+        <h1>Upload Book Details</h1>
+        <label for="title">Title:</label>
+        <input type="text" id="title" name="title" required>
+
+        <label for="image">Image:</label>
+        <input type="file" id="image" name="image" accept="image/*" required>
+
+        <label for="price">Price:</label>
+        <input type="number" id="price" name="price" required>
+
+        <label for="category">Category:</label>
+        <select id="category" name="category">
+            <option value="Adventure">Adventure</option>
+            <option value="Thriller">Thriller</option>
+            <option value="Romantic">Romantic</option>
+            <option value="Comedy">Comedy</option>
+        </select>
+
+        <button type="button" onclick="uploadBook()">Upload Book</button>
+    </form>
+    <script>
+        // Your Firebase configuration
+        const firebaseConfig = {
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_AUTH_DOMAIN",
+            projectId: "YOUR_PROJECT_ID",
+            storageBucket: "YOUR_STORAGE_BUCKET",
+            messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+            appId: "YOUR_APP_ID"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+
+        // Reference to your Firebase database
+        const database = firebase.database().ref('/books');
+
+        // Initialize Firebase Storage
+        const storage = firebase.storage();
+
+        // Function to upload book details to Firebase
+        function uploadBook() {
+            const title = document.getElementById('title').value;
+            const imageInput = document.getElementById('image');
+            const price = document.getElementById('price').value;
+            const category = document.getElementById('category').value;
+
+            // Check if all fields are filled
+            if (title && imageInput.files[0] && price && category) {
+                const imageFile = imageInput.files[0];
+                const imageRef = storage.ref().child(`book_images/${imageFile.name}`);
+
+                // Upload image to Firebase Storage
+                imageRef.put(imageFile).then(() => {
+                    // Get the image URL
+                    return imageRef.getDownloadURL();
+                }).then((imageUrl) => {
+                    // Push book details with image URL to Firebase
+                    const newBookRef = database.push();
+                    newBookRef.set({
+                        title: title,
+                        image: imageUrl,
+                        price: price,
+                        category: category
+                    });
+
+                    // Clear the form fields
+                    document.getElementById('title').value = '';
+                    document.getElementById('image').value = '';
+                    document.getElementById('price').value = '';
+                    document.getElementById('category').value = '';
+
+                    alert('Book details uploaded successfully!');
+                }).catch((error) => {
+                    console.error('Error uploading image:', error);
+                    alert('Error uploading image. Please try again.');
+                });
+            } else {
+                alert('Please fill in all the details.');
+            }
+        }
+    </script>
+</body>
+
+</html>

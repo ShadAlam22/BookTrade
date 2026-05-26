@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <link rel="stylesheet" href="css/style.css">
+    <title>BookTrade</title>
+    <!-- Firebase scripts -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-right">
+            <li><a href="index.html">Home</a></li>
+            <li><a href="products.html">Products</a></li>
+            <li><a href="About.html">About</a></li>
+            <li><a href="login.html">Login</a></li>
+            <li><a href="Register.html">Create Account</a></li>
+        </div>
+        <div class="logo">
+            <img src="images/logo.png" alt="Logo">
+        </div>
+    </nav>
+
+    <!-- Your existing content -->
+    <div class="section-1" style="background-image: url('images/back.jpg'); background-size: cover;">
+        <div class="Section-1-text">
+            <h1 style="color: white;">Welcome to BookTrade</h1>
+            <p>You can find out your books here.</p>
+            <a href="products.html" class="btn">Explore Here <i class="fas fa-arrow-right"></i></a>
+        </div>
+    </div>
+
+    <div class="section-2">
+        <h2>Contact Us</h2>
+        <p>Leave us a message or suggestion:</p>
+
+        <div class="column">
+            <form id="contactForm">
+                <label for="fname">First Name</label>
+                <input type="text" id="fname" name="firstname" placeholder="Your name.." required>
+
+                <label for="lname">Last Name</label>
+                <input type="text" id="lname" name="lastname" placeholder="Your last name.." required>
+
+                <label for="email">Email</label>
+                <input type="email" id="email" name="email" placeholder="Your email.." required>
+
+                <label for="phone">Phone Number</label>
+                <input type="number" id="phone" name="phone" placeholder="Your phone number.." required>
+
+                <label for="subject">Subject</label>
+                <textarea id="subject" name="subject" placeholder="Write something.." style="height:170px" required></textarea>
+
+                <input type="submit" value="Submit">
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Your Firebase configuration
+        var firebaseConfig = {
+            apiKey: "AIzaSyDZEdsBv_8IBGSDilh6WE-BYYhNXC6rIkM",
+  authDomain: "booktrade-5653c.firebaseapp.com",
+  projectId: "booktrade-5653c",
+  storageBucket: "booktrade-5653c.appspot.com",
+  messagingSenderId: "981330904864",
+  appId: "1:981330904864:web:37a1f9569d3ae260cbb945",
+  measurementId: "G-L2TG74QXND"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+
+        document.getElementById("contactForm").addEventListener("submit", function(event) {
+            event.preventDefault();
+            validateForm();
+        });
+
+        function validateForm() {
+            var fname = document.getElementById("fname").value;
+            var lname = document.getElementById("lname").value;
+            var email = document.getElementById("email").value;
+            var phone = document.getElementById("phone").value;
+            var subject = document.getElementById("subject").value;
+
+            if (fname === "" || lname === "" || email === "" || phone === "" || subject === "") {
+                alert("All fields must be filled out");
+                return false;
+            }
+
+            // Get a reference to the database
+            var database = firebase.database();
+            // Push data to the database under the 'contacts' node
+            var contactsRef = database.ref('contacts');
+            contactsRef.push({
+                firstName: fname,
+                lastName: lname,
+                email: email,
+                phone: phone,
+                subject: subject
+            });
+
+            alert("Form submitted successfully!");
+
+            // You can optionally clear the form fields after submission
+            document.getElementById("contactForm").reset();
+
+            return true;
+        }
+    </script>
+</body>
+</html>
