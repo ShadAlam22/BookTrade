@@ -1,0 +1,219 @@
+body {
+  font-family: Arial, Helvetica, sans-serif;
+  background-image: linear-gradient(45deg,#328f8a,#08ac4b);
+  margin: 0;
+  height: auto;
+}
+
+.navbar {
+  display: flex;
+  background-color: #333; /* Dark background color */
+  position: fixed;
+  top: 0;
+  width: 100%;
+  font-size: 20px;
+  z-index: 1000; /* Ensure the navbar is above other elements */
+}
+
+.nav-right {
+  text-align: right;
+  float: right;
+  list-style: none;
+  margin-left: 40px;
+  margin-top: 3px;
+}
+
+.nav-right li {
+  display: inline-block;
+  padding: 15px;
+}
+
+.nav-right li a {
+  text-decoration: none;
+  color: white;
+  transition: color 0.3s;
+}
+
+.nav-right li a:hover {
+  color: #04AA6D; /* Highlight color on hover */
+}
+
+.nav-right .active {
+  background-color: #555; /* Active item background color */
+}
+
+html {
+  box-sizing: border-box;
+}
+
+*, *:before, *:after {
+  box-sizing: inherit;
+}
+
+.column {
+  align-items: center;
+  width: 30%;
+  margin-left: 33%;
+  box-sizing: border-box;
+}
+
+.card {
+  box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
+  background-color: #474e5d;
+  margin: 8px;
+  width: 100%;
+  height: auto;
+  overflow: hidden;
+  transition: box-shadow 0.3s;
+}
+
+.card:hover {
+  box-shadow:white
+}
+
+.about-section {
+  padding-top: 50px;
+  text-align: center;
+  background-color: #474e5d;
+  color: white;
+  padding-bottom: 5px;
+}
+
+.container {
+  padding: 0 16px;
+  color: white;
+}
+
+.container::after,
+.row::after {
+  content: "";
+  clear: both;
+  display: table;
+}
+
+.title {
+  color: grey;
+}
+
+.button {
+  border: none;
+  outline: 0;
+  display: inline-block;
+  padding: 8px;
+  color: white;
+  background-color: #000;
+  text-align: center;
+  cursor: pointer;
+  width: 100%;
+}
+
+.button:hover {
+  background-color: #555;
+}
+
+@media screen and (max-width: 650px) {
+  .column {
+    width: 100%;
+    display: block;
+    margin: 0;
+  }
+}
+/* Add these styles to your existing styles */
+.logo {
+  margin-left: auto;
+  margin-right: 15px;
+  margin-top: 5px;
+}
+
+.logo img {
+  height: 50px;
+  width: 50px; /* Set a fixed width to make it round */
+  border-radius: 50%; /* Make the image round */
+  object-fit: cover; /* Ensure the image covers the entire container */
+}
+
+
+.section-1 {
+  background-color: #3498db;
+  color: black;
+  text-align: center;
+  padding: 100px 0;
+  height: 500px;
+}
+
+.Section-1-text h1 {
+  font-size: 3em;
+  margin-bottom: 20px;
+}
+
+.Section-1-text p {
+  font-size: 1.2em;
+  margin-bottom: 40px;
+}
+
+.btn {
+  display: inline-block;
+  padding: 10px 20px;
+  font-size: 1.2em;
+  background-color: #2ecc71;
+  color: white;
+  text-decoration: none;
+  border-radius: 5px;
+}
+
+.btn i {
+  margin-left: 10px;
+}
+
+.section-2 {
+  text-align: center;
+  padding: 50px;
+  padding-top: 10px;
+}
+
+h2 {
+  font-size: 2.5em;
+  margin-bottom: 20px;
+}
+
+p {
+  font-size: 1.2em;
+  margin-bottom: 30px;
+}
+
+.column {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+form {
+  max-width: 600px;
+  width: 100%;
+}
+
+label {
+  display: block;
+  margin-bottom: 8px;
+}
+
+input,
+select,
+textarea {
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 20px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+}
+
+input[type="submit"] {
+  background-color: #3498db;
+  color: white;
+  cursor: pointer;
+}
+
+input[type="submit"]:hover {
+  background-color: #2980b9;
+}
